@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+server/node_modules/
+
+# Environment variables
+.env
+server/.env
+
+# Build output (Vite)
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mac system files
+.DS_Store
+
+# VS Code settings
+.vscode/
+
+# Local environment artifacts
+*.local
+
+# Temporary files
+*.tmp
