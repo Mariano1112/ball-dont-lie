@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22" id="calendar">
+  <g id="Page-1" fill="none" fill-rule="evenodd" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+    <g id="Artboard" stroke="#000" stroke-width="2" transform="translate(-919 -1443)">
+      <g id="calendar" transform="translate(920 1444)">
+        <rect id="Rectangle-path" width="18" height="18" x="0" y="2" rx="2"></rect>
+        <path id="Shape" d="M13 0v4M5 0v4M0 8h18"></path>
+      </g>
+    </g>
+  </g>
+</svg>

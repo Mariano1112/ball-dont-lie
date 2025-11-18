@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Portal from "./pages/Portal.jsx";
+import HomePage from "./pages/HomePage/HomePage";
+import GamePage from "./pages/GamePage/GamePage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Portal />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/game/:id" element={<GamePage />} />
       </Routes>
     </BrowserRouter>
   );
