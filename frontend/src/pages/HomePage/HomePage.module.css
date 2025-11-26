@@ -36,98 +36,7 @@ body {
   transform: translateX(-50%);
 }
 
-.rightBlock {
-  margin-left: auto;
-  margin-right: 15px;
-  display: flex;
-  align-items: center;
-}
 
-
-.logoBtn {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  font-weight: 1000;
-  color: black;
-  background-color: transparent;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  margin-right: 3px;
-  width: 250px;
-  height: 50px;
-  transition: transform 0.3s ease;
-  cursor: pointer;
-}
-
-.logoBtn:hover {
-  transform: scale(105%);
-}
-
-.WebLogo {
-  width: 80px;
-}
-
-.navButtons {
-  display: flex;
-  gap: 20px;
-  position: absolute;
-  left: 100%;
-  transform: translateX(-50%);
-
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  cursor: pointer;
-  font-weight: 1000;
-  color: black;
-  background-color: transparent;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  margin-right: 3px;
-  width: 150px;
-  height: 40px;
-  transition: transform 0.3s ease, background-color 0.4s;
-}
-
-.btn:hover {
-  background-color: rgb(255, 229, 189);
-  transform: scale(105%);
-}
-
-.btnIcon {
-  width: 40px;
-}
-
-
-.btnAccount {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  gap: 15px;
-  cursor: pointer;
-  font-weight: 1000;
-  color: black;
-  background-color: transparent;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  margin-right: 3px;
-  width: 150px;
-  height: 40px;
-  transition: transform 0.3s ease, background-color 0.4s;
-}
-
-.btnAccount:hover {
-  background-color: rgb(255, 229, 189);
-  transform: scale(105%);
-}
 
 /***************************************************/
 /***************************************************/
@@ -481,79 +390,77 @@ body {
   background: #ff8c00;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 25px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  position: relative; 
 }
 
 /* LEFT */
 .leftBlock {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
 }
 
+
 .navLogo {
-  width: 55px;
+  width: 70px;
 }
 
 .navTitle {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 800;
 }
 
-/* CENTER */
-.SearchBlock {
+/* Search inside filter popup */
+.popupSearch {
   display: flex;
   align-items: center;
-  justify-content: center;   /* центрируем внутри navbar */
-  gap: 10px;
-  width: 50%;              /* фиксированная ширина блока поиска */
-  margin: 0 auto;            /* центрирует блок в navbar */
+  background: #ffffffaa;
+  padding: 100x 10px;
+  border-radius: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.searchIcon {
-  width: 30px;
-  height: 30px;
+.popupSearchIcon {
+  width: 20px;
   opacity: 0.8;
-  margin: 0;                 /* убираем твой margin-top, margin-right */
-  margin-left: 200px;
 }
 
-.searchInput {
-  width: 700em;
-  padding: 8px 12px;
-  border-radius: 25px;
+.popupSearchInput {
+  flex: 1;
+  padding: 2px 2px;
+  border-radius: 6px;
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: 14px;
 }
 
-
-/* RIGHT */
-.rightBlock {
-  display: flex;
-  align-items: center;
-}
-
-.btnAccount {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  background: white;
+.popupSearchBtn {
+  padding: 6px 10px;
+  background: #ff8c00;
   border: none;
-  border-radius: 25px;
-  font-weight: 600;
+  border-radius: 6px;
+  color: white;
   cursor: pointer;
+  font-weight: 600;
 }
 
-.btnAccountIcon {
-  width: 26px;
+.popupSearchBtn:hover {
+  background: #ffa83a;
 }
 
-
+.popupDivider {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
+  margin: 8px 0 12px;
+}
 
 
 /* Filter popup */
@@ -567,7 +474,7 @@ body {
   opacity: 20px;
   padding: 15px;
   border-radius: 10px;
-  width: 220px;
+  width: 275px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   z-index: 10;
 }

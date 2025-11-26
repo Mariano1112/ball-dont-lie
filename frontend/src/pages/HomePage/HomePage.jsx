@@ -34,32 +34,31 @@ export default function HomePage() {
 
 
 
-  // ==================== ADD THIS ====================
-function handleSearch() {
-  if (!searchQuery.trim()) return;
+  function handleSearch() {
+    if (!searchQuery.trim()) return;
 
-  const query = searchQuery.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
 
-  const matched = teamsData.filter(t =>
-    t.name?.toLowerCase().includes(query) ||
-    t.full_name?.toLowerCase().includes(query) ||
-    t.city?.toLowerCase().includes(query)
-  );
-
-  if (matched.length === 1) {
-    const id = matched[0].id;
-
-    setActiveFilters(prev =>
-      prev.includes(id) ? prev : [...prev, id]
+    const matched = teamsData.filter(t =>
+      t.name?.toLowerCase().includes(query) ||
+      t.full_name?.toLowerCase().includes(query) ||
+      t.city?.toLowerCase().includes(query)
     );
 
-    setSearchQuery(""); // очистить поиск
-  } else if (matched.length > 1) {
-    alert("Multiple teams found. Please type more specific");
-  } else {
-    alert("No team found");
+    if (matched.length === 1) {
+      const id = matched[0].id;
+
+      setActiveFilters(prev =>
+        prev.includes(id) ? prev : [...prev, id]
+      );
+
+      setSearchQuery("");
+    } else if (matched.length > 1) {
+      alert("Multiple teams found. Please type more specific");
+    } else {
+      alert("No team found");
+    }
   }
-}
 
 
 
@@ -144,6 +143,8 @@ function handleSearch() {
   }, [upcomingGames, selectedDate]);
 
 
+
+
   // Determinate the week around chosen day
   function getWeekDays(dateStr) {
     const date = new Date(`${dateStr}T12:00:00`);
@@ -182,27 +183,6 @@ function handleSearch() {
         <div className={styles.leftBlock} onClick={() => navigate("/")}>
           <img src="/WEB-Logo/Basketball.png" className={styles.navLogo} />
           <span className={styles.navTitle}>Ball Don't Lie</span>
-        </div>
-
-        {/* CENTER — Search */}
-        <div className={styles.SearchBlock}>
-          <img src="/NavBar_icon/search.svg" className={styles.searchIcon} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search teams..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            onKeyDown={handleSearchKey}
-          />
-        </div>
-
-        {/* RIGHT — Account */}
-        <div className={styles.rightBlock}>
-          <button className={styles.btnAccount} onClick={() => navigate("/MyAccount")}>
-            <img src="/NavBar_icon/user.svg" className={styles.btnAccountIcon} />
-            My Account
-          </button>
         </div>
       </header>
 
@@ -248,6 +228,28 @@ function handleSearch() {
 
           {showFilterPopup && (
             <div className={styles.filterPopup}>
+              <div className={styles.popupSearch}>
+                <img src="/NavBar_icon/search.svg" className={styles.popupSearchIcon} />
+
+                <input
+                  type="text"
+                  className={styles.popupSearchInput}
+                  placeholder="Search for team's matches"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKey}
+                />
+
+                <button
+                  className={styles.popupSearchBtn}
+                  onClick={handleSearch}
+                >
+                  OK
+                </button>
+              </div>
+
+              <hr className={styles.popupDivider} />
+
               {activeFilters.map((id) => {
                 const team = teamsData.find(t => t.id === id);
                 if (!team) return null;
@@ -298,26 +300,32 @@ function handleSearch() {
             <div className={styles.gamesGrid}>
               {!loadingGames && filteredGames.length > 0 ? (
                 filteredGames.map((game, idx) => {
+
+                  console.log("🔥 FULL GAME DATA:", JSON.stringify(game, null, 2));
+
                   const gameTime = new Date(game.date?.start);
                   // ---- Detect status using doc from  API-Sports ----
-                  const shortStatus = String(game.status?.short || "").toUpperCase();
-                  const longStatus = String(game.status?.long || "").toLowerCase();
-                  const clock = game.status?.clock || null;
+                  const short = String(game.status?.short || "").toUpperCase();
+                  const long = String(game.status?.long || "").toLowerCase();
+                  const clock = game.status?.clock || "";
+
+                  const LIVE_STATUSES = [
+                    "LIVE", "1Q", "2Q", "3Q", "4Q", "OT", "AOT", "HT", "IN PLAY"
+                  ];
 
                   const isLive =
-                    longStatus.includes("in play") ||
-                    clock !== null;
+                    LIVE_STATUSES.includes(short) ||
+                    long.includes("live") ||
+                    long.includes("in play") ||
+                    (clock && clock !== "0:00" && clock !== "00:00");
 
-
-                  // Match End
+                  const FINISHED_STATUSES = ["FT", "FINAL"];
                   const isFinished =
-                    ["FT", "FINAL"].includes(shortStatus) ||
-                    longStatus.includes("final") ||
-                    longStatus.includes("ended") ||
-                    longStatus.includes("finished");
+                    FINISHED_STATUSES.includes(short) ||
+                    long.includes("final") ||
+                    long.includes("finished") ||
+                    long.includes("ended");
 
-                  // Match is not Start
-                  const isUpcoming = !isLive && !isFinished;
 
 
                   const home = game.teams?.home || { name: "Home Team", code: "HOM", logo: "/fallback.png" };

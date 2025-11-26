@@ -1,9 +1,11 @@
-const BASE_URL = 
+const BASE_URL =
   import.meta.env.DEV ? "/nba" : "/api/nba";
 
 const HEADERS = {
-  Accept: "application/json",
+  "x-rapidapi-key": import.meta.env.VITE_NBA_API_KEY,
+  "x-rapidapi-host": "v2.nba.api-sports.io"
 };
+
 
 
 
@@ -101,17 +103,18 @@ function normalizePlayers(players) {
 // Send and return the API data information
 // Half ChatGPT half me
 async function api(path, params = {}) {
-  // Start the url header
+
+  // Do NOT use cache for live games or game statistics
+  if (!path.includes("/games")) {
+    const cached = getCached(path, params);
+    if (cached) return cached;
+  }
+
   const base =
     BASE_URL.startsWith("http")
       ? BASE_URL
       : (globalThis?.location?.origin ?? "") + BASE_URL;
 
-  // Since recalling info is long, save the data coming in as cache and return it
-  const cached = getCached(path, params);
-  if (cached) return cached;
-
-  // Populate JSON with the parameters
   const url = new URL(`${base}${path}`);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== "") {
@@ -119,10 +122,8 @@ async function api(path, params = {}) {
     }
   });
 
-  // Send the request to the API
   const json = await fetchJSON(url.toString(), { headers: HEADERS, method: "GET" });
 
-  // Check if there were any issiues in the API request
   if (json?.errors && Object.keys(json.errors).length && !json.errors.rateLimit) {
     throw new Error(`API returned errors: ${JSON.stringify(json.errors)}`);
   }
@@ -130,25 +131,15 @@ async function api(path, params = {}) {
   const payload = json?.response ?? json ?? [];
   const out = (path === "/players") ? normalizePlayers(payload) : payload;
 
-  // Save new information coming in
-  setCached(path, params, out);
+  // Only cache NON-live endpoints
+  if (!path.includes("/games")) {
+    setCached(path, params, out);
+  }
+
   return out;
 }
 
-// Simple concurrency limiter to be gentle on rate limits
-// CHATGPT suggestion
-async function mapLimit(items, limit, fn) {
-  const results = new Array(items.length);
-  let i = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (i < items.length) {
-      const idx = i++;
-      results[idx] = await fn(items[idx], idx);
-    }
-  });
-  await Promise.all(workers);
-  return results;
-}
+
 
 /*
 * ============================ Note from Artur ======================================
@@ -238,179 +229,81 @@ export async function getTeamById(id) {
 
 // ---------- GAMES ----------
 export async function getUpcomingGames(dateStr) {
-  //console.log("📅 Loading games for", dateStr);
+  console.log("📅 Loading games for", dateStr);
 
-  const targetDate = dateStr; // пользовательская дата, без смещений
+  const games = await api(`/games`, { date: dateStr });
+  if (!Array.isArray(games) || games.length === 0) return [];
 
-  const seasons = await api("/seasons");
-  const currentSeason = seasons[seasons.length - 1];
+  const fullGames = [];
 
-  let games = await api("/games", { season: currentSeason });
+  for (const g of games) {
+    let homeStats = {};
+    let awayStats = {};
+    let quarter = g.periods?.current ?? 0;
+    let clock = null;
 
-  if (!Array.isArray(games) || games.length === 0) {
-    console.warn(`⚠️ No games found for ${targetDate}`);
-    return [];
-  }
-
-  // ✅Filtering by local time, taking into account "night" matches
-  return games.filter(g => {
-    const leagueOk = g.league === "standard" || g.league?.name === "NBA";
-    if (!leagueOk) return false;
-    if (!g.date?.start) return false;
-
-    const startUTC = new Date(g.date.start);
-    const local = new Date(startUTC); //automatically converts to local time
-
-    let localY = local.getFullYear();
-    let localM = String(local.getMonth() + 1).padStart(2, "0");
-    let localD = String(local.getDate()).padStart(2, "0");
-
-    // If the match started at night (before 5:00), we'll assign it to the previous day
-    if (local.getHours() < 5) {
-      const prev = new Date(local);
-      prev.setDate(prev.getDate() - 1);
-      localY = prev.getFullYear();
-      localM = String(prev.getMonth() + 1).padStart(2, "0");
-      localD = String(prev.getDate()).padStart(2, "0");
-    }
-
-    const localStr = `${localY}-${localM}-${localD}`;
-
-    return localStr === targetDate;
-  });
-}
-
-
-
-
-export async function getGamesByDate(dateStr) {
-  const games = await api("/games", {
-    season: 2024,
-    date: dateStr, // YYYY-MM-DD
-  });
-
-  return games.filter(g => g.league?.name === "NBA");
-}
-
-
-
-
-// ---------- PLAYERS ----------
-export async function getPlayers({ season, team, id, search } = {}) {
-  // only send params the endpoint supports
-  const params = {};
-  if (season) params.season = season;
-  if (team) params.team = team;
-  if (id) params.id = id;
-  if (search) params.search = search;
-
-  return api("/players", params);
-}
-
-export async function searchPlayersByName(name, season) {
-  const first = await getPlayers({ search: name, season });
-  if (Array.isArray(first) && first.length) return first;
-  // fallback w/o season
-  return getPlayers({ search: name });
-}
-
-export async function getPlayersByTeam(teamId, season) {
-  return api("/players", { team: teamId, season });
-}
-
-export async function getPlayerById(id, season) {
-  const data = await api("/players", { id, season });
-  return data?.[0] ?? null;
-}
-
-export async function getSeasons() {
-  return api("/seasons");
-}
-
-// A long ass calculation to get the top 15 players in the season
-// half Chatgpt half me
-export async function getTopPlayersBySeason({ season, limit = 15, metric = "pts" } = {}) {
-  if (!season) throw new Error("season is required");
-
-  // 1) teams (NBA franchises only)
-  const allTeams = await getTeams();
-  const nbaTeams = (Array.isArray(allTeams) ? allTeams : []).filter(
-    t => t?.nbaFranchise === true || t?.leagues?.standard
-  );
-  const teamIds = nbaTeams.map(t => t?.id).filter(Boolean);
-
-  // 2) players per team (reduces id space; cache will help on repeated visits)
-  const playersByTeam = await mapLimit(teamIds, 2, async (tid) => {
-    // small courtesy delay to spread requests
-    await sleep(150);
-    const list = await getPlayers({ season, team: tid });
-    return Array.isArray(list) ? list : [];
-  });
-  const players = normalizePlayers(playersByTeam.flat());
-
-  // Build lookup by player id for name/logo
-  const byId = new Map(players.map(p => [p.id, p]));
-
-  // 3) Get ALL per-game stats per team (≃ 30 requests total) and aggregate locally
-  const teamStatsLists = await mapLimit(teamIds, 1, async (tid) => {
-    // polite stagger
-    await sleep(250);
     try {
-      // API-Sports supports filtering statistics by team + season.
-      // This returns per-game rows for every player on that team.
-      const games = await api("/players/statistics", { season, team: tid });
-      return Array.isArray(games) ? games : [];
-    } catch {
-      return [];
+      const statsRes = await api(`/games/statistics`, { id: g.id });
+      const teamStats = statsRes?.[0]?.statistics || [];
+
+      homeStats = teamStats.find(s => s.team?.id === g.teams?.home?.id) || {};
+      awayStats = teamStats.find(s => s.team?.id === g.teams?.visitors?.id) || {};
+
+      // correct quarter
+      quarter = g.periods?.current || homeStats.period || awayStats.period || 0;
+
+      // correct clock (from statistics only)
+      // Correct LIVE clock from 3 possible sources:
+      clock =
+        g.status?.clock ||
+        homeStats?.clock ||
+        awayStats?.clock ||
+        null;
+
+
+    } catch (err) {
+      console.warn("⚠ Stats unavailable for game", g.id, err);
     }
-  });
 
-  const allGames = teamStatsLists.flat();
+    const short = String(g.status?.short || "").toUpperCase();
+    const long = String(g.status?.long || "").toLowerCase();
 
-  // 4) Aggregate to season averages per player (only those we have player objects for)
-  const sums = new Map();
-  for (const g of allGames) {
-    const pid = g?.player?.id ?? g?.id;
-    if (!pid) continue;
-    const cur = sums.get(pid) ?? { gp: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, fgm: 0, fga: 0, ftm: 0, fta: 0 };
-    cur.gp += 1;
-    cur.pts += g.points ?? g.pts ?? 0;
-    cur.reb += g.totReb ?? g.rebounds ?? 0;
-    cur.ast += g.assists ?? 0;
-    cur.stl += g.steals ?? 0;
-    cur.blk += g.blocks ?? 0;
-    cur.tov += g.turnovers ?? 0;
-    cur.fgm += g.fgm ?? 0;
-    cur.fga += g.fga ?? 0;
-    cur.ftm += g.ftm ?? 0;
-    cur.fta += g.fta ?? 0;
-    sums.set(pid, cur);
+    const isLive =
+      ["LIVE", "1Q", "2Q", "3Q", "4Q", "OT", "AOT"].includes(short) ||
+      long.includes("live") ||
+      (clock && clock !== "0:00");
+
+    const isFinished =
+      ["FT", "FINAL"].includes(short) ||
+      long.includes("final") ||
+      long.includes("ended");
+
+    fullGames.push({
+      id: g.id,
+      date: g.date,
+      teams: g.teams,
+
+      scores: {
+        home: { points: g.scores?.home?.points ?? homeStats.points ?? 0 },
+        visitors: { points: g.scores?.visitors?.points ?? awayStats.points ?? 0 },
+      },
+
+      periods: {
+        current: quarter,
+      },
+
+      status: {
+        short,
+        long,
+        clock: clock,
+      },
+
+      live: isLive,
+      finished: isFinished,
+    });
   }
 
-  const playersWithAvg = [];
-  for (const [pid, sum] of sums.entries()) {
-    const gp = sum.gp || 1;
-    const avg = {
-      gp,
-      pts: +(sum.pts / gp).toFixed(1),
-      reb: +(sum.reb / gp).toFixed(1),
-      ast: +(sum.ast / gp).toFixed(1),
-      stl: +(sum.stl / gp).toFixed(1),
-      blk: +(sum.blk / gp).toFixed(1),
-      tov: +(sum.tov / gp).toFixed(1),
-      fgm: +(sum.fgm / gp).toFixed(1),
-      fga: +(sum.fga / gp).toFixed(1),
-      ftm: +(sum.ftm / gp).toFixed(1),
-      fta: +(sum.fta / gp).toFixed(1),
-    };
-    avg.eff = +((avg.pts + avg.reb + avg.ast + avg.stl + avg.blk)
-      - (avg.fga - avg.fgm) - (avg.fta - avg.ftm) - avg.tov).toFixed(1);
-
-    const p = byId.get(pid);
-    if (p) playersWithAvg.push({ ...p, averages: avg });
-  }
-
-  const sortKey = metric === "eff" ? (p => p.averages.eff) : (p => p.averages.pts);
-  playersWithAvg.sort((a, b) => sortKey(b) - sortKey(a));
-  return playersWithAvg.slice(0, limit);
+  return fullGames;
 }
+
+
