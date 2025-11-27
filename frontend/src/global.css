@@ -1,0 +1,35 @@
+/* 🌞 LIGHT MODE (default) */
+body {
+    background-color: #f2f2f2;
+    color: #111;
+  }
+  
+  /* 🌚 DARK MODE (activated with <html class="dark">) */
+  .dark body {
+    background-color: #121212;
+    color: #eaeaea;
+  }
+  
+  /* HEADER */
+  header,
+  .navbar,
+  .topbar {
+    background-color: #ff8c00;
+  }
+  
+  .dark header,
+  .dark .navbar,
+  .dark .topbar {
+    background-color: #1f1f1f;
+  }
+  
+  /* CARDS */
+  .card,
+  .game-card,
+  .container,
+  .section {
+    background-color: white;
+    color: black;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
