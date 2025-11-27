@@ -32,6 +32,23 @@ export default function HomePage() {
   const [activeFilters, setActiveFilters] = useState([]);
   const [showFilterPopup, setShowFilterPopup] = useState(false);
 
+  // === THEME SWITCH ===
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "light";
+  });
+
+  useEffect(() => {
+    if (theme === "dark") document.body.classList.add("dark-theme");
+    else document.body.classList.remove("dark-theme");
+
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === "light" ? "dark" : "light"));
+  };
+
+
 
 
   function handleSearch() {
@@ -179,12 +196,16 @@ export default function HomePage() {
     <div className={styles.body}>
       {/* Navbar */}
       <header className={styles.navbar}>
-        {/* LEFT — Logo */}
         <div className={styles.leftBlock} onClick={() => navigate("/")}>
           <img src="/WEB-Logo/Basketball.png" className={styles.navLogo} />
           <span className={styles.navTitle}>Ball Don't Lie</span>
         </div>
+
+        <button className={styles.themeBtn} onClick={toggleTheme}>
+          {theme === "light" ? "🌙" : "☀️"}
+        </button>
       </header>
+
 
 
       {/* Main container for all blocks */}

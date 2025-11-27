@@ -102,13 +102,13 @@ function normalizePlayers(players) {
 
 // Send and return the API data information
 // Half ChatGPT half me
-async function api(path, params = {}) {
+export async function api(path, params = {}) {
 
-  // Do NOT use cache for live games or game statistics
-  if (!path.includes("/games")) {
+  if (!path.includes("/games") && !path.includes("/players")) {
     const cached = getCached(path, params);
     if (cached) return cached;
   }
+
 
   const base =
     BASE_URL.startsWith("http")

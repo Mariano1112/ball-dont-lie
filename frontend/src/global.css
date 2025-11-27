@@ -1,35 +1,105 @@
-/* 🌞 LIGHT MODE (default) */
-body {
-    background-color: #f2f2f2;
-    color: #111;
-  }
-  
-  /* 🌚 DARK MODE (activated with <html class="dark">) */
-  .dark body {
-    background-color: #121212;
-    color: #eaeaea;
-  }
-  
-  /* HEADER */
-  header,
-  .navbar,
-  .topbar {
-    background-color: #ff8c00;
-  }
-  
-  .dark header,
-  .dark .navbar,
-  .dark .topbar {
-    background-color: #1f1f1f;
-  }
-  
-  /* CARDS */
-  .card,
-  .game-card,
-  .container,
-  .section {
-    background-color: white;
-    color: black;
-    transition: background 0.3s ease, color 0.3s ease;
-  }
-  
+
+
+
+:root {
+    --bg-color: #e9e9e9;
+    --text-color: #000;
+    --card-bg: rgba(255, 255, 255, 0.15);
+    --card-border: rgba(255, 255, 255, 0.3);
+    --navbar-bg: #ff8c00;
+    --hover-bg: #fcc888d7;
+}
+
+.dark-theme {
+    --bg-color: #141414;
+    --text-color: #f2f2f2;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.25);
+    --navbar-bg: #222;
+    --card-border: transparent;
+    --hover-bg: rgba(255, 255, 255, 0.08);
+    color: #fff
+    
+}
+
+
+.dark-theme .team span,
+.dark-theme .gameTimeTop,
+.dark-theme .vs,
+.dark-theme .gameDateBottom {
+  color: #fff !important;
+}
+
+
+/* 🌙 DARK THEME GLOBAL FIX — работает для ВСЕГО сайта */
+.dark-theme {
+  --bg-color: #141414 !important;
+  --text-color: #ffffff !important;
+  --card-bg: rgba(255, 255, 255, 0.06) !important;
+  --navbar-bg: #222 !important;
+}
+
+/* Делает ВСЕ тексты белыми */
+.dark-theme * {
+  color: #ffffff !important;
+}
+
+/* Иконки не трогаем */
+.dark-theme img {
+  filter: none !important;
+}
+
+/* Карточки матчей */
+.dark-theme .gameCard {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: none !important;
+}
+
+.dark-theme .gameCard:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.15) !important;
+  transform: scale(1.05);
+}
+
+
+/* Дата, VS, время */
+.dark-theme .gameTimeTop,
+.dark-theme .vs,
+.dark-theme .gameDateBottom {
+  color: #fff !important;
+}
+
+/* Дни недели */
+.dark-theme .weekDay,
+.dark-theme .dayAbbr,
+.dark-theme .dayNum {
+  color: #fff !important;
+}
+
+/* Popup фильтра */
+.dark-theme .filterPopup {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: transparent !important;
+}
+
+/* ================== REACT CALENDAR DARK ================== */
+
+.dark-theme .react-calendar {
+  background: #222 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.dark-theme .react-calendar__navigation button {
+  color: #fff !important;
+}
+
+.dark-theme .react-calendar__tile {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+.dark-theme .react-calendar__tile--active {
+  background: #ff8c00 !important;
+  color: #fff !important;
+}
